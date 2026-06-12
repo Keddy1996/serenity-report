@@ -1,0 +1,1 @@
+{"name": "serenity-report-app", "version": "1.0.0", "description": "Serenity 投研报告生成器 - 四维分析引擎 + A4 PDF 导出", "main": "server.js", "scripts": {"start": "node server.js", "dev": "node server.js"}, "dependencies": {"express": "^4.21.2", "cors": "^2.8.5"}}

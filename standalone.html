@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Serenity 投研报告</title>
+<style>
+:root {
+  --bg: #faf7f0;
+  --bg-warm: #f5f0e6;
+  --card: #ffffff;
+  --card-warm: #fefcf7;
+  --card-border: rgba(180,160,130,0.15);
+  --text: #2d2a24;
+  --text-secondary: #6b6560;
+  --text-muted: #9b9488;
+  --accent: #c0956b;
+  --accent-light: #d4b896;
+  --green: #4a9b6d;
+  --green-bg: rgba(74,155,109,0.08);
+  --red: #c5554a;
+  --red-bg: rgba(197,85,74,0.08);
+  --blue: #5b8db8;
+  --blue-bg: rgba(91,141,184,0.08);
+  --orange: #d4944a;
+  --orange-bg: rgba(212,148,74,0.08);
+  --purple: #8b7ec8;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.04);
+  --shadow: 0 2px 12px rgba(0,0,0,0.05), 0 0 0 1px rgba(0,0,0,0.03);
+  --shadow-lg: 0 4px 24px rgba(0,0,0,0.06), 0 0 0 1px rgba(0,0,0,0.04);
+  --radius: 16px;
+  --radius-sm: 10px;
+  --font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC", "Microsoft YaHei", sans-serif;
+  --font-mono: "SF Mono", "JetBrains Mono", "Consolas", monospace;
+}
+* { margin:0; padding:0; box-sizing:border-box }
+body { background:var(--bg); color:var(--text); font-family:var(--font); min-height:100vh; line-height:1.6; -webkit-font-smoothing:antialiased }
+body::before {
+  content:''; position:fixed; top:-50%; left:-50%; width:200%; height:200%;
+  background: radial-gradient(ellipse at 20% 50%, rgba(180,160,130,0.06) 0%, transparent 50%),
+              radial-gradient(ellipse at 80% 20%, rgba(140,180,160,0.04) 0%, transparent 50%),
+              radial-gradient(ellipse at 50% 80%, rgba(200,180,140,0.05) 0%, transparent 50%);
+  pointer-events:none; z-index:0;
+}
+
+/* ---------- Header ---------- */
+.app-header {
+  position:sticky; top:0; z-index:100;
+  background:rgba(250,247,240,0.85); backdrop-filter:blur(20px) saturate(180%);
+  border-bottom:1px solid var(--card-border);
+  padding:14px 28px; display:flex; align-items:center; justify-content:space-between;
+}
+.brand { display:flex; align-items:center; gap:10px }
+.brand-icon { width:32px; height:32px; border-radius:8px; background:linear-gradient(135deg, #c0956b, #d4b896);
+  display:flex; align-items:center; justify-content:center; color:#fff; font-size:14px; font-weight:700; }
+.brand h1 { font-size:16px; font-weight:700; letter-spacing:-.2px; color:var(--text) }
+.brand-sub { font-size:11px; color:var(--text-muted); font-weight:400; display:block }
+.header-right { display:flex; align-items:center; gap:10px }
+.health-dot { width:8px; height:8px; border-radius:50%; background:#d4cfc6; transition:all .3s }
+.health-dot.online { background:var(--green); box-shadow:0 0 6px rgba(74,155,109,.3) }
+.health-dot.offline { background:var(--red); animation:pulse 2s infinite }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+
+/* ---------- Buttons ---------- */
+.btn { padding:10px 20px; border:none; border-radius:10px; cursor:pointer; font-size:13px; font-weight:600;
+  transition:all .2s cubic-bezier(.16,1,.3,1); display:flex; align-items:center; gap:7px; font-family:var(--font) }
+.btn-primary { background:var(--accent); color:#fff }
+.btn-primary:hover { background:#a87d58; transform:translateY(-1px); box-shadow:0 4px 12px rgba(192,149,107,.3) }
+.btn-primary:disabled { opacity:.4; cursor:not-allowed; transform:none }
+.btn-export { background:var(--card-warm); color:var(--accent); border:1px solid rgba(192,149,107,.2) }
+.btn-export:hover { background:rgba(192,149,107,.1); border-color:var(--accent-light) }
+.btn-export:disabled { opacity:.3 }
+.btn-share { background:var(--green); color:#fff; margin-left:8px }
+.btn-share:hover { background:#3d8459; box-shadow:0 4px 12px rgba(74,155,109,.3) }
+.btn-close { background:transparent; color:var(--text-muted); border:1px solid var(--card-border); padding:8px 16px; border-radius:8px;
+  cursor:pointer; font-size:12px; font-family:var(--font) }
+.btn-close:hover { color:var(--text); border-color:#ccc }
+
+/* ---------- Main Layout ---------- */
+.main-content { max-width:1000px; margin:0 auto; padding:40px 24px 60px; position:relative; z-index:1 }
+
+/* ---------- Search ---------- */
+.search-box { display:flex; gap:10px; margin-bottom:12px }
+.search-input-wrap { flex:1; position:relative }
+.search-input-wrap input { width:100%; padding:14px 16px 14px 42px; background:var(--card); border:1px solid var(--card-border);
+  border-radius:var(--radius); color:var(--text); font-size:15px; outline:none;
+  transition:all .2s; font-family:var(--font); box-shadow:var(--shadow-sm) }
+.search-input-wrap input:focus { border-color:var(--accent-light); box-shadow:0 0 0 3px rgba(192,149,107,.1), var(--shadow) }
+.search-icon { position:absolute; left:14px; top:50%; transform:translateY(-50%); color:var(--text-muted) }
+.quick-picks { display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:36px }
+.quick-picks .label { font-size:12px; color:var(--text-muted) }
+.tag { padding:6px 14px; background:var(--card-warm); border:1px solid var(--card-border); border-radius:20px;
+  color:var(--text-secondary); font-size:12px; cursor:pointer; transition:all .2s; font-family:var(--font) }
+.tag:hover { background:rgba(192,149,107,.08); border-color:var(--accent-light); color:var(--accent); transform:translateY(-1px) }
+
+/* ---------- Loading ---------- */
+.loading-section,.error-section,.report-section { display:none }
+.loading-section.visible,.error-section.visible,.report-section.visible { display:block }
+.loader-wrapper { text-align:center; padding:80px 20px }
+.orb { width:48px; height:48px; margin:0 auto 20px; border:3px solid rgba(192,149,107,.15); border-top-color:var(--accent);
+  border-radius:50%; animation:spin .8s linear infinite }
+@keyframes spin { to{transform:rotate(360deg)} }
+.loading-text { font-size:14px; color:var(--text-secondary); margin-bottom:24px }
+.progress-steps { display:flex; justify-content:center; gap:4px; margin-bottom:14px; flex-wrap:wrap }
+.step { padding:5px 10px; background:var(--card-warm); border-radius:20px; font-size:11px;
+  color:var(--text-muted); display:flex; align-items:center; gap:4px; transition:all .2s }
+.step.active { background:rgba(192,149,107,.1); color:var(--accent); font-weight:600 }
+.step.done { background:rgba(74,155,109,.08); color:var(--green) }
+.step-num { width:16px; height:16px; border-radius:50%; background:rgba(0,0,0,.05); display:flex;
+  align-items:center; justify-content:center; font-size:10px; transition:all .2s }
+.step.active .step-num { background:var(--accent); color:#fff }
+.step.done .step-num { background:var(--green); color:#fff }
+.progress-bar { width:100%; max-width:400px; height:3px; background:var(--card-warm); border-radius:3px; margin:0 auto; overflow:hidden }
+.progress-fill { height:100%; background:linear-gradient(90deg, var(--accent-light), var(--accent)); border-radius:3px;
+  transition:width .4s cubic-bezier(.16,1,.3,1); width:0 }
+
+/* ---------- Error ---------- */
+.error-card { text-align:center; padding:60px 20px }
+.error-card h3 { font-size:18px; margin-bottom:8px }
+.error-card p { color:var(--text-secondary); margin-bottom:18px }
+
+/* ---------- Report ---------- */
+.report-content { display:grid; gap:16px }
+.report-header {
+  display:flex; align-items:center; justify-content:space-between;
+  background:var(--card); border:1px solid var(--card-border); border-radius:var(--radius);
+  padding:22px 28px; box-shadow:var(--shadow);
+  background:linear-gradient(135deg, #fefcf7 0%, #faf7f0 100%);
+}
+.stock-name { font-size:24px; font-weight:700; letter-spacing:-.3px; display:flex; align-items:center; gap:10px }
+.stock-price-change { padding:3px 10px; border-radius:16px; font-size:12px; font-weight:600 }
+.price-up { background:var(--red-bg); color:var(--red) }
+.price-down { background:var(--green-bg); color:var(--green) }
+.stock-meta { display:flex; gap:8px; color:var(--text-muted); font-size:12px; margin-top:4px }
+.verdict-badge { padding:10px 22px; border-radius:20px; font-size:14px; font-weight:700; white-space:nowrap;
+  box-shadow:var(--shadow-sm) }
+.verdict-buy { background:var(--green-bg); color:var(--green) }
+.verdict-caution { background:var(--orange-bg); color:var(--orange) }
+.verdict-neutral { background:rgba(107,101,96,.06); color:var(--text-secondary) }
+.verdict-bear { background:var(--red-bg); color:var(--red) }
+
+/* ---------- Cards ---------- */
+.row { display:grid; grid-template-columns:1fr 1fr; gap:16px }
+@media(max-width:768px) { .row{grid-template-columns:1fr} }
+.card {
+  background:var(--card); border:1px solid var(--card-border); border-radius:var(--radius);
+  padding:22px 24px; box-shadow:var(--shadow); transition:all .2s
+}
+.card:hover { box-shadow:var(--shadow-lg); transform:translateY(-1px) }
+.card-header { display:flex; align-items:center; gap:10px; margin-bottom:18px }
+.card-icon { font-size:16px; width:28px; height:28px; border-radius:8px; display:flex;
+  align-items:center; justify-content:center; background:rgba(192,149,107,.08) }
+.card-title { font-size:14px; font-weight:700; color:var(--text) }
+
+/* ---------- Metrics Grid ---------- */
+.metrics-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px }
+.metric-item { padding:12px 14px; background:var(--card-warm); border-radius:var(--radius-sm); border:1px solid var(--card-border);
+  transition:all .2s }
+.metric-item:hover { border-color:var(--accent-light); box-shadow:var(--shadow-sm) }
+.metric-label { font-size:10px; color:var(--text-muted); margin-bottom:3px; text-transform:uppercase; letter-spacing:.3px }
+.metric-value { font-size:17px; font-weight:700; font-family:var(--font-mono); color:var(--text) }
+
+/* ---------- PEG ---------- */
+.peg-gauge-wrap { height:200px; margin-bottom:10px }
+.peg-detail { text-align:center; padding:14px; background:var(--card-warm); border-radius:var(--radius-sm) }
+.peg-detail strong { font-size:22px; font-family:var(--font-mono) }
+.peg-detail .sub { color:var(--text-muted); font-size:12px; margin-top:4px }
+
+/* ---------- GF-DMA ---------- */
+.gf-score-display { text-align:center; margin-bottom:14px }
+.gf-big-num { font-size:52px; font-weight:800; font-family:var(--font-mono); line-height:1 }
+.gf-label { font-size:16px; color:var(--text-muted) }
+.gf-radar-wrap { height:220px; margin-bottom:10px }
+.gf-verdict { text-align:center; font-size:13px; font-weight:600; padding:8px; border-radius:8px }
+
+/* ---------- Bayesian ---------- */
+.bayes-chart-wrap { height:240px; margin-bottom:10px }
+.bayes-compare { text-align:center; padding:12px; background:var(--card-warm); border-radius:var(--radius-sm); font-size:13px }
+
+/* ---------- Alpha ---------- */
+.alpha-score-row { display:flex; align-items:center; gap:10px; margin-bottom:14px }
+.alpha-stars { display:flex; gap:3px; font-size:22px }
+.star { color:#e8e4da }
+.star.fill { color:var(--accent) }
+.alpha-events { display:grid; gap:8px }
+.event-item { padding:10px 14px; border-radius:var(--radius-sm); font-size:12px; display:flex; gap:8px; align-items:center;
+  background:var(--card-warm) }
+.event-pos { border-left:3px solid var(--green) }
+.event-neg { border-left:3px solid var(--red) }
+.event-neu { border-left:3px solid #d4cfc6 }
+.event-tag { font-size:10px; padding:2px 8px; border-radius:10px; white-space:nowrap; font-weight:500 }
+.tag-pos { background:var(--green-bg); color:var(--green) }
+.tag-neg { background:var(--red-bg); color:var(--red) }
+.tag-neu { background:rgba(107,101,96,.06); color:var(--text-muted) }
+
+/* ---------- Conclusion ---------- */
+.conclusion-body { font-size:13px; line-height:1.8 }
+.conclusion-body p { margin-bottom:10px }
+.conclusion-body ul { list-style:none; margin:6px 0 }
+.conclusion-body ul li { padding:5px 0; padding-left:0 }
+.conclusion-body ul li::before { display:inline-block; margin-right:6px }
+.conclusion-body .bull-list li::before { content:"✦"; color:var(--green) }
+.conclusion-body .bear-list li::before { content:"▸"; color:var(--red) }
+
+/* ---------- Image Export Modal ---------- */
+.export-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:999;
+  backdrop-filter:blur(4px); align-items:center; justify-content:center }
+.export-overlay.visible { display:flex }
+.export-modal { background:var(--card); border-radius:20px; padding:28px; max-width:90vw; max-height:90vh;
+  overflow:auto; box-shadow:0 20px 60px rgba(0,0,0,.15); position:relative }
+.export-modal h3 { font-size:16px; margin-bottom:8px }
+.export-modal .sub { color:var(--text-muted); font-size:12px; margin-bottom:16px }
+.export-modal img { max-width:100%; border-radius:12px; box-shadow:var(--shadow); margin-bottom:16px }
+.export-actions { display:flex; gap:10px; justify-content:flex-end; flex-wrap:wrap }
+
+/* ---------- Footer ---------- */
+.report-footer { text-align:center; padding:16px; color:var(--text-muted); font-size:11px; margin-top:12px }
+
+/* ---------- Print (light) ---------- */
+@media print {
+  body{background:#fff}
+  .app-header,.search-section,.report-footer,.btn-export,.btn-share{display:none}
+  .card{box-shadow:none;border:1px solid #e5e7eb}
+}
+</style>
+</head>
+<body>
+
+<header class="app-header">
+  <div class="brand">
+    <div class="brand-icon">S</div>
+    <div><h1>Serenity 投研报告</h1><span class="brand-sub">四维量化分析 · DeepSeek v4</span></div>
+  </div>
+  <div class="header-right">
+    <span class="health-dot" id="healthDot" title="API状态"></span>
+    <button class="btn btn-export" id="btnExport" disabled onclick="exportImage()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+      导出高清图片
+    </button>
+  </div>
+</header>
+
+<main class="main-content">
+  <div class="search-box">
+    <div class="search-input-wrap">
+      <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input id="stockInput" placeholder="输入股票名或代码 — 如：盛美上海、688082、NVDA" autocomplete="off">
+    </div>
+    <button class="btn btn-primary" id="btnAnalyze" onclick="analyze()">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+      开始分析
+    </button>
+  </div>
+  <div class="quick-picks">
+    <span class="label">快捷选择</span>
+    <button class="tag" onclick="quickPick('盛美上海')">盛美上海</button>
+    <button class="tag" onclick="quickPick('中芯国际')">中芯国际</button>
+    <button class="tag" onclick="quickPick('寒武纪')">寒武纪</button>
+    <button class="tag" onclick="quickPick('贵州茅台')">贵州茅台</button>
+    <button class="tag" onclick="quickPick('英伟达')">英伟达</button>
+    <button class="tag" onclick="quickPick('腾讯控股')">腾讯控股</button>
+  </div>
+
+  <div id="loading" class="loading-section">
+    <div class="loader-wrapper">
+      <div class="orb"></div>
+      <p class="loading-text" id="loadingText">正在连接分析引擎...</p>
+      <div class="progress-steps">
+        <span class="step" data-s="1"><span class="step-num">1</span>数据</span>
+        <span class="step" data-s="2"><span class="step-num">2</span>TAM-PEG</span>
+        <span class="step" data-s="3"><span class="step-num">3</span>GF-DMA</span>
+        <span class="step" data-s="4"><span class="step-num">4</span>贝叶斯</span>
+        <span class="step" data-s="5"><span class="step-num">5</span>Alpha</span>
+        <span class="step" data-s="6"><span class="step-num">6</span>报告</span>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+    </div>
+  </div>
+
+  <div id="error" class="error-section">
+    <div class="error-card">
+      <h3>分析失败</h3>
+      <p id="errorMsg"></p>
+      <button class="btn btn-primary" onclick="retry()">重试</button>
+    </div>
+  </div>
+
+  <div id="report" class="report-section">
+    <div class="report-content" id="reportContent"></div>
+    <div class="report-footer">Serenity 投研工具箱 · 仅供参考不构成投资建议 · 数据: DeepSeek v4</div>
+  </div>
+</main>
+
+<!-- Export overlay -->
+<div class="export-overlay" id="exportOverlay" onclick="closeExport(event)">
+  <div class="export-modal" onclick="event.stopPropagation()">
+    <h3>投研报告高清图片</h3>
+    <p class="sub">右键图片可复制 · 或点击下方按钮一键复制</p>
+    <img id="exportImage" src="" alt="投研报告" />
+    <div class="export-actions">
+      <button class="btn btn-share" onclick="copyImage()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+        一键复制图片
+      </button>
+      <button class="btn btn-export" onclick="downloadImage()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        下载PNG
+      </button>
+      <button class="btn-close" onclick="closeExport()">关闭</button>
+    </div>
+  </div>
+</div>
+
+<!-- CDN: html2canvas for image export -->
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+<!-- CDN: Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+
+<script>
+'use strict';
+
+const CFG = {
+  key: 'sk-b28b612100db45ebb69c5044e2bdf38b',
+  url: 'https://api.deepseek.com/chat/completions',
+  model: 'deepseek-v4-pro'
+};
+
+let isAnalyzing = false, lastQuery = '', lastAnalysis = null, charts = {}, exportBlob = null;
+const $ = id => document.getElementById(id);
+
+// ==================== Init ====================
+(async function init(){
+  try {
+    const r = await fetch('https://api.deepseek.com/models', { headers:{'Authorization':'Bearer '+CFG.key} });
+    if(r.ok) { $('healthDot').className='health-dot online'; $('healthDot').title='DeepSeek API ✓' }
+  } catch(e) { $('healthDot').className='health-dot offline'; $('healthDot').title='API 离线' }
+})();
+
+// ==================== Flow ====================
+function quickPick(name) { $('stockInput').value=name; analyze() }
+function retry() { hide('error'); analyze() }
+
+async function analyze() {
+  if(isAnalyzing) return;
+  const q = $('stockInput').value.trim();
+  if(!q) return;
+  isAnalyzing = true; lastQuery = q;
+  show('loading'); hide('error'); hide('report');
+  $('btnAnalyze').disabled = true;
+  $('btnExport').disabled = true;
+  destroyCharts(); updateProgress(0);
+
+  try {
+    step(1,true); setLT('采集数据...'); updateProgress(10);
+    const analysis = await callDeepSeek(q);
+    updateProgress(100); step(6,false,'done');
+    if(analysis.error) throw new Error(analysis.error);
+
+    lastAnalysis = analysis;
+    renderReport(analysis);
+    hide('loading'); show('report');
+    $('btnExport').disabled = false;
+    setTimeout(() => window.scrollTo({top:0, behavior:'smooth'}), 100);
+  } catch(e) {
+    hide('loading'); show('error');
+    $('errorMsg').textContent = e.message || '未知错误';
+  } finally {
+    isAnalyzing = false;
+    $('btnAnalyze').disabled = false;
+  }
+}
+
+// ==================== DeepSeek Call ====================
+async function callDeepSeek(stockQuery) {
+  const sys = `你是专业量化投研分析师。直接返回纯JSON对象（不要markdown，不要解释）。
+
+框架：
+1. TAM-Adj-PEG: PEG=ForwardPE/(EPS增速×TRF×QF)。TRF(CAGR≥15→1.25,10-15→1.05,6-10→0.85,<6→0.6)。QF(毛利率≥55→1.2,45-55→1.05,35-45→0.9,<35→0.75)。<0.8低估 0.8-1.2合理偏低 1.2-1.8合理 1.8-2.5偏贵 >2.5高估
+2. GF-DMA(0-100): 基本面40+股价背离25+趋势平行20+预期修正15。≥78 Healthy,58-77 Neutral,38-57 Caution,<38 HighRisk
+3. 贝叶斯: H0(-5%)~H5(+52%)后验分布。差>+8%显著低估,+3~+8%温和,-3~+3%合理,-8~-3%温和高估,<-8%显著高估
+4. Alpha: 0-5分。事件≥4条混合正/负/中。≥4强,3-4中,2-3弱,<2无`;
+
+  const prompt = `分析「${stockQuery}」。输出JSON:
+{"basic":{"name":"","code":"","price":0,"changePct":0,"marketCap":0,"currency":"CNY"},"valuation":{"peTTM":0,"forwardPE":0,"pb":0,"ps":0},"financials":{"revenue":0,"revenueGrowth":0,"netProfit":0,"profitGrowth":0,"grossMargin":0,"netMargin":0,"roe":0,"debtRatio":0,"operatingCF":0,"rdExpense":0,"rdRatio":0},"technical":{"ma5":0,"ma20":0,"ma60":0,"ma120":0,"ma250":0,"priceVsMa20":0,"atr":0,"volumeRatio":0,"rsi14":50},"analyst":{"ratingBuy":0,"targetPriceHigh":0,"targetPriceLow":0,"consensusEPS2025":0,"consensusEPS2026":0,"impliedGrowthRate":0},"industry":{"sectorName":"","industryTAM":0,"tamCAGR":0,"companyMarketShare":0,"competitivePosition":""},"events":[{"type":"positive|negative|neutral","tag":"","desc":""}],"peg":{"forwardPE":0,"epsGrowth":"","trf":"","qf":"","adjustedGR":"","pegValue":"","grade":"","color":"#hex","advice":""},"gfDma":{"total":0,"dims":[{"label":"基本面匹配","value":0,"max":40},{"label":"股价背离度","value":0,"max":25},{"label":"趋势平行性","value":0,"max":20},{"label":"预期修正","value":0,"max":15}],"zone":"","zoneColor":"#hex","verdict":""},"bayesian":{"hypotheses":[{"id":"H0","label":"衰退收缩","rate":-5,"posterior":0},{"id":"H1","label":"低增长","rate":5,"posterior":0},{"id":"H2","label":"稳健增长","rate":12,"posterior":0},{"id":"H3","label":"高增长","rate":22,"posterior":0},{"id":"H4","label":"爆发式","rate":36,"posterior":0},{"id":"H5","label":"平台扩张","rate":52,"posterior":0}],"intrinsicGrowth":"","impliedGrowth":"","diff":"","conclusion":"","dominantHypothesis":""},"alpha":{"score":"","stars":0,"events":[],"verdict":""},"conclusion":{"summary":"","bullCase":[],"bearCase":[],"verdict":"中性|谨慎|买入|观察","positionAdvice":""}}`;
+
+  step(2,true); setLT('DeepSeek分析...'); updateProgress(25);
+
+  const resp = await fetch(CFG.url, {
+    method:'POST',
+    headers:{'Content-Type':'application/json','Authorization':'Bearer '+CFG.key},
+    body:JSON.stringify({ model:CFG.model, messages:[{role:'system',content:sys},{role:'user',content:prompt}], temperature:0.3, max_tokens:6000 })
+  });
+  if(!resp.ok) throw new Error(`API ${resp.status}: ${(await resp.text()).slice(0,200)}`);
+
+  step(3,true); setLT('TAM-Adj-PEG...'); updateProgress(50);
+  const data = await resp.json();
+  const content = data.choices?.[0]?.message?.content;
+  if(!content) throw new Error('空响应');
+
+  step(4,true); setLT('GF-DMA评分...'); updateProgress(65);
+  step(5,true); setLT('贝叶斯估值...'); updateProgress(80);
+  step(6,true); setLT('Alpha扫描...'); updateProgress(95);
+
+  let parsed = extractJSON(content);
+  if(!parsed) {
+    setLT('重试中...');
+    const r2 = await fetch(CFG.url, {
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+CFG.key},
+      body:JSON.stringify({ model:CFG.model, messages:[
+        {role:'system',content:sys+'\n\n【RETRY - OUTPUT RAW JSON ONLY】'},
+        {role:'user',content:prompt.slice(0,400)}
+      ], temperature:0.1, max_tokens:5000 })
+    });
+    if(r2.ok) {
+      const d2 = await r2.json();
+      parsed = extractJSON(d2.choices?.[0]?.message?.content||'');
+    }
+  }
+  if(!parsed) throw new Error('JSON解析失败');
+  return parsed;
+}
+
+function extractJSON(text) {
+  let t = text.trim();
+  try { return JSON.parse(t) } catch(e) {}
+  let m = t.match(/```(?:json)?\s*\n?([\s\S]*?)\n?```/);
+  if(m) { try { return JSON.parse(m[1].trim()) } catch(e) {} }
+  const fb = t.indexOf('{');
+  if(fb>=0) {
+    let d=0, q=false, esc=false;
+    for(let i=fb; i<t.length; i++) {
+      const c=t[i];
+      if(esc){esc=false;continue}
+      if(c==='\\'){esc=true;continue}
+      if(c==='"'){q=!q;continue}
+      if(q)continue;
+      if(c==='{')d++; else if(c==='}'){
+        d--; if(d===0){try{return JSON.parse(t.substring(fb,i+1))}catch(e2){break}}
+      }
+    }
+  }
+  return null;
+}
+
+// ==================== Render ====================
+function renderReport(d) {
+  const v = d.conclusion?.verdict||'中性';
+  const vc = v==='买入'?'buy':v==='谨慎'?'caution':v==='观察'?'caution':'neutral';
+  const chg = d.basic?.changePct;
+  const events = (d.events||[]).sort((a,b)=> (a.type==='positive'?-1:a.type==='negative'?1:0));
+
+  $('reportContent').innerHTML = `
+    <div class="report-header">
+      <div>
+        <h2 class="stock-name">${d.basic?.name||'--'}
+          <span class="stock-price-change ${(chg||0)>=0?'price-up':'price-down'}">${chg!=null?(chg>=0?'+':'')+chg+'%':'--'}</span>
+        </h2>
+        <div class="stock-meta"><span>${d.basic?.code||'--'}</span> · <span>${new Date().toLocaleDateString('zh-CN')}</span> · <span>DeepSeek v4</span></div>
+      </div>
+      <div class="verdict-badge verdict-${vc}">${v}</div>
+    </div>
+
+    <div class="row">
+      <div class="card">
+        <div class="card-header"><div class="card-icon">◈</div><h3 class="card-title">核心指标</h3></div>
+        <div class="metrics-grid">
+          ${[['最新价',d.basic?.price||'--'],['市值(亿)',d.basic?.marketCap||'--'],['PE(TTM)',d.valuation?.peTTM||'--'],['Forward PE',d.valuation?.forwardPE||'--'],['PB',d.valuation?.pb||'--'],['营收增速',(d.financials?.revenueGrowth||'--')+'%'],['毛利率',(d.financials?.grossMargin||'--')+'%'],['ROE',(d.financials?.roe||'--')+'%']].map(([l,v])=>`<div class="metric-item"><div class="metric-label">${l}</div><div class="metric-value">${v}</div></div>`).join('')}
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><div class="card-icon">◎</div><h3 class="card-title">TAM-Adj-PEG</h3></div>
+        <div class="peg-gauge-wrap"><canvas id="pegChart"></canvas></div>
+        <div class="peg-detail">
+          <strong style="color:${d.peg?.color||'var(--orange)'}">PEG = ${d.peg?.pegValue||'--'}</strong>
+          <div class="sub">${d.peg?.grade||'--'} · ${d.peg?.advice||''}</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="card">
+        <div class="card-header"><div class="card-icon">⬡</div><h3 class="card-title">GF-DMA 健康度</h3></div>
+        <div class="gf-score-display">
+          <span class="gf-big-num" style="color:${d.gfDma?.zoneColor||'var(--orange)'}">${d.gfDma?.total||'--'}</span>
+          <span class="gf-label">/ 100</span>
+        </div>
+        <div class="gf-radar-wrap"><canvas id="gfRadar"></canvas></div>
+        <div class="gf-verdict">${d.gfDma?.zone||'--'}: ${d.gfDma?.verdict||''}</div>
+      </div>
+      <div class="card">
+        <div class="card-header"><div class="card-icon">∞</div><h3 class="card-title">贝叶斯估值</h3></div>
+        <div class="bayes-chart-wrap"><canvas id="bayesChart"></canvas></div>
+        <div class="bayes-compare">
+          内在 <b>${d.bayesian?.intrinsicGrowth||'--'}%</b> vs 隐含 <b>${d.bayesian?.impliedGrowth||'--'}%</b>
+          ${d.bayesian?.conclusion?`<br><span style="color:${parseFloat(d.bayesian.diff||0)>=0?'var(--green)':'var(--red)'}">→ ${d.bayesian.conclusion} (${d.bayesian.dominantHypothesis||''})</span>`:''}
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="card">
+        <div class="card-header"><div class="card-icon">✦</div><h3 class="card-title">Alpha 信号</h3></div>
+        <div class="alpha-score-row">
+          <span style="font-size:13px;color:var(--text-secondary)">Alpha强度</span>
+          <div class="alpha-stars">${Array.from({length:5},(_,i)=>`<span class="star${i<(d.alpha?.stars||0)?' fill':''}">★</span>`).join('')}</div>
+          <span style="font-weight:700;font-family:var(--font-mono)">${d.alpha?.score||'--'}/5</span>
+        </div>
+        <div class="alpha-events">${events.map(e=>`<div class="event-item event-${e.type==='positive'?'pos':e.type==='negative'?'neg':'neu'}"><span class="event-tag tag-${e.type==='positive'?'pos':e.type==='negative'?'neg':'neu'}">${e.tag}</span>${e.desc}</div>`).join('')}</div>
+      </div>
+      <div class="card">
+        <div class="card-header"><div class="card-icon">⌂</div><h3 class="card-title">综合建议</h3></div>
+        <div class="conclusion-body">
+          <p style="color:var(--text-secondary)">${d.conclusion?.summary||'--'}</p>
+          <p style="font-weight:700;font-size:12px;color:var(--green)">利好</p>
+          <ul class="bull-list">${(d.conclusion?.bullCase||[]).map(c=>`<li>${c}</li>`).join('')}</ul>
+          <p style="font-weight:700;font-size:12px;color:var(--red);margin-top:12px">风险</p>
+          <ul class="bear-list">${(d.conclusion?.bearCase||[]).map(c=>`<li>${c}</li>`).join('')}</ul>
+          <p style="margin-top:12px;padding:12px;background:var(--card-warm);border-radius:8px"><b>建议: </b>${d.conclusion?.positionAdvice||'--'}</p>
+        </div>
+      </div>
+    </div>`;
+
+  renderCharts(d);
+}
+
+function renderCharts(d) {
+  destroyCharts();
+  if(typeof Chart==='undefined') return;
+
+  // PEG Gauge
+  const pgC = document.getElementById('pegChart');
+  if(pgC) {
+    const pegVal = Math.min(Math.max(parseFloat(d.peg?.pegValue)||2,0),4);
+    const zones = [
+      {min:0,max:.8,c:'rgba(74,155,109,.2)',l:'低估'},{min:.8,max:1.2,c:'rgba(74,155,109,.1)',l:'合理偏低'},
+      {min:1.2,max:1.8,c:'rgba(212,148,74,.1)',l:'合理'},{min:1.8,max:2.5,c:'rgba(197,85,74,.1)',l:'偏贵'},
+      {min:2.5,max:4,c:'rgba(197,85,74,.2)',l:'高估'}
+    ];
+    charts.peg = new Chart(pgC.getContext('2d'), {
+      type:'bar', data:{labels:['PEG'],datasets:[
+        ...zones.map(z=>({label:z.l,data:[z.max-z.min],backgroundColor:z.c,barPercentage:1,categoryPercentage:1,base:z.min})),
+        {label:'当前',data:[1],backgroundColor:d.peg?.color||'var(--orange)',borderColor:'#fff',borderWidth:2,borderRadius:6,barPercentage:.06,categoryPercentage:1,base:pegVal}
+      ]},
+      options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,scales:{x:{min:0,max:4,grid:{display:false},ticks:{stepSize:.5,color:'#9b9488'}},y:{display:false}},plugins:{legend:{display:false}}}
+    });
+  }
+
+  // GF Radar
+  const gfC = document.getElementById('gfRadar');
+  if(gfC) {
+    const dims = d.gfDma?.dims||[{label:'--',value:0,max:40}];
+    charts.gf = new Chart(gfC.getContext('2d'), {
+      type:'radar', data:{labels:dims.map(di=>di.label),datasets:[{data:dims.map(di=>(di.value/di.max)*100),backgroundColor:'rgba(192,149,107,.12)',borderColor:'#c0956b',borderWidth:2,pointRadius:4,pointBackgroundColor:'#c0956b'}]},
+      options:{responsive:true,maintainAspectRatio:false,scales:{r:{min:0,max:100,ticks:{display:false},grid:{color:'rgba(0,0,0,.06)'},pointLabels:{color:'#6b6560',font:{size:11}}}},plugins:{legend:{display:false}}}
+    });
+  }
+
+  // Bayesian
+  const byC = document.getElementById('bayesChart');
+  if(byC) {
+    const hyps = d.bayesian?.hypotheses||[];
+    charts.bayes = new Chart(byC.getContext('2d'), {
+      type:'bar', data:{labels:hyps.map(h=>h.label),datasets:[{data:hyps.map(h=>h.posterior),backgroundColor:['#c5554a','#d4944a','#d4b896','#5b9b6d','#5b8db8','#8b7ec8'],borderRadius:4}]},
+      options:{responsive:true,maintainAspectRatio:false,scales:{x:{grid:{display:false},ticks:{color:'#9b9488',font:{size:9}}},y:{display:false}},plugins:{legend:{display:false}}}
+    });
+  }
+}
+
+function destroyCharts() { Object.values(charts).forEach(c=>{try{c.destroy()}catch(e){}}); charts={}; }
+
+// ==================== Image Export ====================
+async function exportImage() {
+  if(typeof html2canvas==='undefined') { alert('导出组件加载中，请稍后再试'); return; }
+  if(!lastAnalysis) return;
+
+  // Hide export button temporarily for clean capture
+  $('btnExport').style.display = 'none';
+  const el = $('reportContent');
+
+  try {
+    const canvas = await html2canvas(el, {
+      backgroundColor: '#faf7f0',
+      scale: 2, // 2x for high quality
+      useCORS: true,
+      logging: false,
+      windowWidth: el.scrollWidth,
+      windowHeight: el.scrollHeight
+    });
+
+    exportBlob = await new Promise(r => canvas.toBlob(r, 'image/png', 1.0));
+    const url = URL.createObjectURL(exportBlob);
+
+    $('exportImage').src = url;
+    $('exportOverlay').classList.add('visible');
+  } catch(e) {
+    alert('导出失败: ' + e.message);
+  } finally {
+    $('btnExport').style.display = '';
+  }
+}
+
+async function copyImage() {
+  if(!exportBlob) return;
+  try {
+    await navigator.clipboard.write([
+      new ClipboardItem({ 'image/png': exportBlob })
+    ]);
+    // Brief feedback
+    const btn = document.querySelector('.btn-share');
+    const orig = btn.innerHTML;
+    btn.innerHTML = '✓ 已复制!';
+    btn.style.background = 'var(--green)';
+    setTimeout(() => { btn.innerHTML = orig; btn.style.background = ''; }, 1500);
+  } catch(e) {
+    // Fallback: download instead
+    downloadImage();
+    alert('浏览器不支持一键复制，已自动下载');
+  }
+}
+
+function downloadImage() {
+  if(!exportBlob) return;
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(exportBlob);
+  a.download = `Serenity_${lastQuery||'report'}_${new Date().toISOString().slice(0,10)}.png`;
+  a.click();
+}
+
+function closeExport(e) {
+  if(e && e.target !== $('exportOverlay')) return;
+  $('exportOverlay').classList.remove('visible');
+}
+
+// ==================== UI Helpers ====================
+function show(id) { $(id).classList.add('visible') }
+function hide(id) { $(id).classList.remove('visible') }
+function setLT(t) { $('loadingText').textContent = t }
+function updateProgress(p) { $('progressFill').style.width = p+'%' }
+function step(n, active, state) {
+  document.querySelectorAll('.step').forEach(s=>{s.classList.remove('active','done')});
+  const el = document.querySelector(`.step[data-s="${n}"]`);
+  if(el && state==='done') el.classList.add('done');
+  else if(el && active) el.classList.add('active');
+}
+</script>
+</body>
+</html>
